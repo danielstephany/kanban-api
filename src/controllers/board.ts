@@ -66,6 +66,17 @@ export const ownedByUser = async(req: Request, res: Response, next: NextFunction
     }
 }
 
+export const forUsersWithAccess = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const boards = await Board.find({ usersWithAccess: res.locals.userId })
+
+        res.status(200).json(boards)
+    } catch (e) {
+        const err = e as iError
+        err.statusCode = 500
+        next(err)
+    }
+}
 
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
