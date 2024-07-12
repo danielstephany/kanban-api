@@ -51,3 +51,31 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
         next(e)
     }
 }
+
+
+
+export const ownedByUser = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const boards = await Board.find({owner: res.locals.userId})
+
+        res.status(200).json(boards)
+    } catch (e){
+        const err = e as iError
+        err.statusCode = 500
+        next(err) 
+    }
+}
+
+
+export const getById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params
+        const board = await Board.findById(id)
+
+        res.status(200).json(board)
+    } catch (e) {
+        const err = e as iError
+        err.statusCode = 500
+        next(err)
+    }
+}

@@ -1,4 +1,5 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
+import type iError from './types/error'
 import dotenv from "dotenv";
 const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
@@ -24,6 +25,10 @@ app.use((req, res, next) => {
 app.use("/auth", auth)
 app.use("/board", boardRoutes)
 
+app.use((error: iError, req: Request, res: Response, next: NextFunction) => {
+    const status = error.statusCode || 500
+    res.status(status).json({ message: error.message || "Internal server error."})
+})
 
 
 mongoose.connect(process.env.DB_URL)
