@@ -25,6 +25,10 @@ app.use((req, res, next) => {
 app.use("/auth", auth)
 app.use("/board", boardRoutes)
 
+app.use("*", (req: Request, res: Response, next: NextFunction) => {
+    res.status(404).json({message: "This route does not exist, spooky."})
+})
+
 app.use((error: iError, req: Request, res: Response, next: NextFunction) => {
     const status = error.statusCode || 500
     res.status(status).json({ message: error.message || "Internal server error."})

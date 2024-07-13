@@ -10,9 +10,9 @@ import isAuth from '../middleware/isAuth'
 const router = Express.Router()
 
 router.post("/", isAuth, createBoard)
+router.get("/get/:id", isAuth, getById)
 router.get("/owned-by-user", isAuth, ownedByUser)
 router.get("/for-users-with-access", isAuth, forUsersWithAccess)
 router.get("/owned-by-user", isAuth, ownedByUser)
-router.get("/:id", isAuth, getById)
 
 export default router
