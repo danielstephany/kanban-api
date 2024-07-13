@@ -61,7 +61,7 @@ export const ownedByUser = async(req: Request, res: Response, next: NextFunction
         res.status(200).json(boards)
     } catch (e){
         const err = e as iError
-        err.statusCode = 500
+        err.statusCode = 404
         next(err) 
     }
 }
@@ -73,7 +73,7 @@ export const forUsersWithAccess = async (req: Request, res: Response, next: Next
         res.status(200).json(boards)
     } catch (e) {
         const err = e as iError
-        err.statusCode = 500
+        err.statusCode = 404;
         next(err)
     }
 }
@@ -86,7 +86,7 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
         res.status(200).json(board)
     } catch (e) {
         const err = e as iError
-        err.statusCode = 500
+        err.statusCode = 404
         next(err)
     }
 }
