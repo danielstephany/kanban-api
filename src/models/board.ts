@@ -6,7 +6,8 @@ const columnSchema = new mongoose.Schema({
     columnId: {
         type: String,
         unique: true,
-    }
+    },
+    taskIds: [String]
 });
 
 const boardSchema = new mongoose.Schema({

@@ -12,6 +12,7 @@ interface iBoardData  {
 type tColumnMap = {[key: string]: {
     title: string,
     columnId: string,
+    taskIds: string[]
 }}
 
 export const createBoard = async (req: Request, res: Response, next: NextFunction) => {
@@ -25,7 +26,8 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
                 const titleKey = columnTitle.toLowerCase().split(" ").join("-")
                 columnMap[titleKey] = {
                     title: columnTitle,
-                    columnId: titleKey
+                    columnId: titleKey,
+                    taskIds: []
                 }
                 columnOrder.push(titleKey)
             })
@@ -69,6 +71,18 @@ export const ownedByUser = async(req: Request, res: Response, next: NextFunction
 export const forUsersWithAccess = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const boards = await Board.find({ usersWithAccess: res.locals.userId })
+
+        res.status(200).json(boards)
+    } catch (e) {
+        const err = e as iError
+        err.statusCode = 404;
+        next(err)
+    }
+}
+
+export const getBoardsNavList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const boards = await Board.find({ usersWithAccess: res.locals.userId }, "title _id")
 
         res.status(200).json(boards)
     } catch (e) {
