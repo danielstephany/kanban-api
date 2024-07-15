@@ -92,6 +92,32 @@ export const getBoardsNavList = async (req: Request, res: Response, next: NextFu
     }
 }
 
+export const addUsers = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params
+        const {users} = req.body
+
+        const board: iBoardData | null = await Board.findById(id)
+        const storedUsers = await User.find({_id: users}, "_id")
+        
+        if (board?.usersWithAccess && storedUsers.length === users.length){
+            const updatedBoard = await Board.updateOne({_id: id}, {
+                usersWithAccess: [...board?.usersWithAccess, ...users]
+            }) 
+            res.status(200).json(updatedBoard)
+        } else {
+            const error: iError = new Error("Expected valid array of users")
+            error.statusCode = 500;
+            throw error
+        }
+
+    } catch (e) {
+        const err = e as iError
+        if(!err.statusCode) err.statusCode = 404;
+        next(err)
+    }
+}
+
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {id} = req.params
