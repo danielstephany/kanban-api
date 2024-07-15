@@ -92,6 +92,7 @@ export const getBoardsNavList = async (req: Request, res: Response, next: NextFu
     }
 }
 
+//TODO: hash out add users work flow
 export const addUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {id} = req.params
