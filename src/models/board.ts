@@ -7,7 +7,7 @@ const columnSchema = new mongoose.Schema({
         unique: true,
     },
     taskIds: [String]
-});
+}, { timestamps: true });
 
 const boardSchema = new mongoose.Schema({
     title: {
@@ -25,7 +25,7 @@ const boardSchema = new mongoose.Schema({
     },
     columnOrder: [String],
     usersWithAccess: [String],
-});
+}, { timestamps: true });
 
 const board = mongoose.model('Board', boardSchema);
 
