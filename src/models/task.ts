@@ -12,7 +12,19 @@ const taskSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true
-    }
+    },
+    boardId: {
+        type: String,
+        required: true
+    },
+    createdBy: {
+        type: String,
+        required: true
+    },
+    upadatedBy: {
+        type: String,
+        required: true
+    },
 }, { timestamps: true });
 
 const task = mongoose.model('Task', taskSchema);

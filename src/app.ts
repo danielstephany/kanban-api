@@ -5,6 +5,7 @@ const mongoose = require("mongoose")
 const bodyParser = require("body-parser")
 
 import boardRoutes from './routes/board'
+import taskRoutes from './routes/task'
 import auth from './routes/auth'
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 
 app.use("/auth", auth)
 app.use("/board", boardRoutes)
+app.use("/task", taskRoutes)
 
 app.use("*", (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({message: "This route does not exist, spooky."})
