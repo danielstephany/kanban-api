@@ -23,8 +23,19 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
             throw err
         }
     } catch (e) {
-        const err = e as iError
-        if (!err.statusCode) err.statusCode = 500;
+        next(e)
+    }
+}
+
+export const getTasksForBoard = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {boardId} = req.params
+        
+        const tasks = await Task.find({boardId})
+
+        res.status(200).json(tasks)
+
+    } catch(e){
         next(e)
     }
 }
