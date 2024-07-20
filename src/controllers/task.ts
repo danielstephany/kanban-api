@@ -29,11 +29,22 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
 
 export const getTasksForBoard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {boardId} = req.params
-        
+        const {boardId} = req.params        
         const tasks = await Task.find({boardId})
 
         res.status(200).json(tasks)
+
+    } catch(e){
+        next(e)
+    }
+}
+
+export const getTask = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params
+        const task = await Task.findById(id)
+
+        res.status(200).json(task)
 
     } catch(e){
         next(e)
