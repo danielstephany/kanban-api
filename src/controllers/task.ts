@@ -50,3 +50,21 @@ export const getTask = async (req: Request, res: Response, next: NextFunction) =
         next(e)
     }
 }
+
+export const updateTask = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params
+        const { title, description, status } = req.body
+        const task = await Task.updateOne({ _id: id }, {
+            title,
+            description,
+            status,
+            upadatedBy: res.locals.userId
+        })
+
+        res.status(204).json(null)
+
+    } catch(e){
+        next(e)
+    }
+}
