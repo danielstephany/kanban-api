@@ -67,3 +67,14 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
 
 }
+
+export const varifyToken = async (req: Request, res: Response, next: NextFunction) => {
+    if(res.locals.userId){
+        const user = await User.findById(res.locals.userId).select("+password")
+        res.status(200).json(user)
+    } else {
+        const error: iError = new Error("Token invalid")
+        error.statusCode = 401;
+        next(error)
+    }
+}
