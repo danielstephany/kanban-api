@@ -1,5 +1,6 @@
 import User from "../models/user"
 import Board from "../models/board"
+import Task from "../models/task"
 import { Request, Response, NextFunction } from 'express'
 import iError from '../types/error'
 
@@ -19,7 +20,7 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
     const columnMap: tColumnMap = {}
     const columnOrder: String[] = []
     try {
-        const { title, columns, usersWithAccess}: iBoardData = req.body
+        const { title, columns, usersWithAccess=[]}: iBoardData = req.body
 
         if(title && Array.isArray(columns)){
             columns.forEach(columnTitle => {
@@ -37,7 +38,8 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
                 title,
                 columns: columnMap,
                 columnOrder,
-                usersWithAccess,
+                tasks: {},
+                usersWithAccess: [res.locals.userId, ...usersWithAccess],
             })
             res.status(200).json(board)
         } else {
@@ -121,11 +123,50 @@ export const addUsers = async (req: Request, res: Response, next: NextFunction) 
 
 export const getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const userId = res.locals.userId
         const {id} = req.params
-        const board = await Board.findById(id)
+        const board = await Board.findOne({ _id: id, usersWithAccess: [userId] })
+            .populate('tasks.$*', "title")
 
         res.status(200).json(board)
     } catch (e) {
+        const err = e as iError
+        err.statusCode = 404
+        next(err)
+    }
+}
+
+export const moveTask = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {boardId, sourceColumn, destColumn, taskId, taskStatus} = req.body;
+
+        if (!boardId ||
+            !Array.isArray(sourceColumn?.taskIds) || 
+            !sourceColumn.columnId || 
+            !Array.isArray(destColumn?.taskIds) || 
+            !destColumn.columnId || 
+            !taskId || 
+            !taskStatus
+        ){
+            const error: iError = new Error("Pleas provide a valid request body.")
+            error.statusCode = 500;
+            throw error
+        }
+
+        const updatedBoard = await Board.findOneAndUpdate({ _id: boardId }, {
+            $set: {
+                [`columns.${sourceColumn.columnId}.taskIds`]: sourceColumn?.taskIds,
+                [`columns.${destColumn.columnId}.taskIds`]: destColumn?.taskIds,
+            }
+        },{new: true}).populate('tasks.$*', "title")
+
+        await Task.updateOne({ _id: taskId }, {
+            status: taskStatus
+        })
+
+        res.status(200).json(updatedBoard)
+
+    } catch(e) {
         const err = e as iError
         err.statusCode = 404
         next(err)

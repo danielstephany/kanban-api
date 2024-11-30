@@ -6,7 +6,7 @@ const columnSchema = new mongoose.Schema({
         type: String,
         unique: true,
     },
-    taskIds: [String]
+    taskIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
 }, { timestamps: true });
 
 const boardSchema = new mongoose.Schema({
@@ -23,10 +23,29 @@ const boardSchema = new mongoose.Schema({
         type: Map,
         of: columnSchema
     },
+    tasks: {
+        type: Map,
+        of: { type: mongoose.Schema.Types.ObjectId, ref: 'Task' },
+        required: true
+    },
     columnOrder: [String],
     usersWithAccess: [String],
 }, { timestamps: true });
 
-const board = mongoose.model('Board', boardSchema);
+
+interface boardInterface {
+    title: string,
+    owner: mongoose.Types.ObjectId,
+    columns: Map<string, {
+        title: string,
+        columnId: string,
+        taskIds: mongoose.Types.ObjectId[],
+    }>,
+    tasks: Map<string, mongoose.Types.ObjectId>,
+    columnOrder: string[],
+    usersWithAccess: string[],
+}
+
+const board = mongoose.model<boardInterface>('Board', boardSchema);
 
 export default board

@@ -13,8 +13,9 @@ const taskSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    boardId: {
-        type: String,
+    boardId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Board',
         required: true
     },
     createdBy: {

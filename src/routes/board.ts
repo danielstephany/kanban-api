@@ -5,13 +5,15 @@ import {
     forUsersWithAccess,
     getBoardsNavList,
     addUsers,
-    getById
+    getById,
+    moveTask
 } from '../controllers/board'
 import isAuth from '../middleware/isAuth'
 
 const router = Express.Router()
 
 router.post("/", isAuth, createBoard)
+router.post("/move-task", isAuth, moveTask)
 router.get("/get/:id", isAuth, getById)
 router.get("/owned-by-user", isAuth, ownedByUser)
 router.get("/for-users-with-access", isAuth, forUsersWithAccess)

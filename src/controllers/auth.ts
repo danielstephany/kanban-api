@@ -15,6 +15,14 @@ export const signup = async (req: Request, res: Response, next: NextFunction) =>
         }
 
         if (firstName && lastName && email && password){
+
+            const existingUser = await User.findOne({email})
+            if(existingUser){
+                const error: iError = new Error("User with submited email already exists")
+                error.statusCode = 409
+                throw error
+            }
+
             const salt = bcrypt.genSaltSync(10)
             const passwordHash = bcrypt.hashSync(password, salt)
             await User.create({ firstName, lastName, email, password: passwordHash })
@@ -44,7 +52,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
         if(email && password){
             const userWithPass = await User.findOne({email}, "password").select("+password")
             if (!userWithPass || !bcrypt.compareSync(password, userWithPass.password)){
-                const error: iError = new Error("wrong password")
+                const error: iError = new Error("Wrong password or email")
                 error.statusCode = 422;
                 throw error
             }
@@ -71,7 +79,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 export const varifyToken = async (req: Request, res: Response, next: NextFunction) => {
     if(res.locals.userId){
         const user = await User.findById(res.locals.userId).select("+password")
-        res.status(200).json(user)
+        res.status(200).json({user})
     } else {
         const error: iError = new Error("Token invalid")
         error.statusCode = 401;
