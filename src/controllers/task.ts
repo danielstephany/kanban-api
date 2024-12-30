@@ -8,29 +8,29 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
     try{
         const {title, description, status, boardId} = req.body
         
-        if (title && status){
-            const task = await Task.create({ 
-                title, 
-                description, 
-                status, 
-                boardId,
-                createdBy: res.locals.userId,
-                upadatedBy: res.locals.userId
-            })
-
-            //TODO: add logic to add the task to the board and set its column to the first column
+        if (title && status && boardId){
             const board = await Board.findById(boardId)
-            if(board?.columns){
-                const firstColumnName = board.columnOrder[0]
-                const firstColumn = board.columns.get(firstColumnName)
-                if (firstColumn){
-                    firstColumn.taskIds.push(task._id)
-                    board.tasks.set(String(task._id), task._id )
-                    await board.save()
-                } 
+            const selectedColumn = board ? board.columns.get(status) : null
+                
+            if (selectedColumn && board){
+                const task = await Task.create({
+                    title,
+                    description: description || "",
+                    status: selectedColumn?.title,
+                    boardId,
+                    createdBy: res.locals.userId,
+                    upadatedBy: res.locals.userId
+                })
+
+                selectedColumn.taskIds.push(task._id)
+                board.tasks.set(String(task._id), task._id )
+                await board.save()
+                res.status(201).json(task)
+
+            } else {
+                throw new Error("Issue setting task status")
             }
 
-            res.status(201).json(task)
         } else {
             const err: iError = new Error("title, status and boardId are required.")
             err.statusCode = 422
