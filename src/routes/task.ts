@@ -11,7 +11,7 @@ const router = Express.Router()
 
 router.post("/", isAuth, createTask)
 
-router.put("/update/:id", updateTask)
+router.put("/update", updateTask)
 
 router.get("/get/:id", isAuth, getTask)
 
