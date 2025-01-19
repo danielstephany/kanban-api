@@ -16,7 +16,7 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
                 const task = await Task.create({
                     title,
                     description: description || "",
-                    status: selectedColumn?.title,
+                    status: status,
                     boardId,
                     createdBy: res.locals.userId,
                     upadatedBy: res.locals.userId
@@ -96,6 +96,52 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
             res.status(204).json(null)
         } else {
             const err: iError = new Error("title, status and description are required.")
+            err.statusCode = 422
+            throw err
+        }
+
+    } catch(e){
+        next(e)
+    }
+}
+
+export const deleteTaskAndRemoveFromBoard = async(req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {id} = req.params
+
+        if(id){
+
+            const task = await Task.findOne({_id: id})
+            if(task){
+                // remove task id from board and board column
+                const board = await Board.findOne({ _id: task?.boardId })
+                if(board){
+                    const col = board?.columns.get(task.status)
+                    if(col){
+                        const taskIds = col.taskIds.filter((taskId) => String(taskId) !== id);
+                        col.taskIds = taskIds
+                        board.tasks.delete(id)
+                        await board.save()
+                        await task.deleteOne()
+                    } else {
+                        const err: iError = new Error("unable to remove task from column.")
+                        err.statusCode = 422
+                        throw err
+                    }
+                } else {
+                    const err: iError = new Error("task board does not exist.")
+                    err.statusCode = 422
+                    throw err
+                }
+            } else {
+                const err: iError = new Error("task does not exist.")
+                err.statusCode = 422
+                throw err
+            }
+
+            res.status(204).json(null)
+        } else {
+            const err: iError = new Error("task id is required.")
             err.statusCode = 422
             throw err
         }

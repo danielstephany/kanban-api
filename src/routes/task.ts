@@ -4,7 +4,8 @@ import {
     createTask,
     getTasksForBoard,
     getTask,
-    updateTask
+    updateTask,
+    deleteTaskAndRemoveFromBoard
 } from "../controllers/task";
 
 const router = Express.Router()
@@ -12,6 +13,8 @@ const router = Express.Router()
 router.post("/", isAuth, createTask)
 
 router.put("/update", updateTask)
+
+router.delete("/delete-task-and-remove-from-board/:id", deleteTaskAndRemoveFromBoard)
 
 router.get("/get/:id", isAuth, getTask)
 
