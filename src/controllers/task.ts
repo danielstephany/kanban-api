@@ -67,7 +67,8 @@ export const getTask = async (req: Request, res: Response, next: NextFunction) =
 
 export const updateTask = async (req: Request, res: Response, next: NextFunction) => {
     try {        
-        const { _id, title, description, status } = req.body
+        const { title, description, status } = req.body
+        const _id = req.params.id;
 
         if (_id && title && status) {
             const task = await Task.findOneAndUpdate({ _id: _id }, {

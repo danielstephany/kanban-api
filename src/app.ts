@@ -24,8 +24,8 @@ app.use((req, res, next) => {
 })
 
 app.use("/auth", auth)
-app.use("/board", boardRoutes)
-app.use("/task", taskRoutes)
+app.use("/boards", boardRoutes)
+app.use("/tasks", taskRoutes)
 
 app.use("*", (req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({message: "This route does not exist, spooky."})

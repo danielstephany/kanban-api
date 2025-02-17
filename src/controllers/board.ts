@@ -175,18 +175,20 @@ export const moveTask = async (req: Request, res: Response, next: NextFunction) 
 
 export const getBoards = async (req: Request, res: Response, next: NextFunction) => {
     const userId = res.locals.userId
-    const { offset = "0", limit = "10" } = <{ offset: string, limit: string }>req.query
+    const { page = "0", limit = "10" } = <{ page: string, limit: string }>req.query
     
     try {
+        const offset = parseInt(page, 10) * parseInt(limit, 10);
+
         const boardList = await Board
             .find({ usersWithAccess: { $in: [userId] } }, "title updatedAt", { skip: 3, limit: 5 })
             .sort({'updatedAt': -1})
             .limit(parseInt(limit, 10))
-            .skip(parseInt(offset, 10));
+            .skip(offset);
 
         const total = await Board.countDocuments({ usersWithAccess: { $in: [userId] }})
 
-        res.status(200).json({ data: boardList, offset: parseInt(offset, 10), limit: parseInt(limit, 10), total })
+        res.status(200).json({ data: boardList, page: parseInt(page), limit: parseInt(limit, 10), total })
     } catch(e){
         const err = e as iError
         err.statusCode = 404
