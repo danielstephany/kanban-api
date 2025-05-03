@@ -12,12 +12,12 @@ const router = Express.Router()
 
 router.post("/", isAuth, createTask)
 
-router.put("/:id", updateTask)
+router.put("/:id", isAuth, updateTask)
 
-router.get("/for-board/:boardId", getTasksForBoard)
+router.get("/for-board/:boardId", isAuth, getTasksForBoard)
 
 router.get("/:id", isAuth, getTask)
 
-router.delete("/:id/delete-task-and-remove-from-board", deleteTaskAndRemoveFromBoard)
+router.delete("/:id/delete-task-and-remove-from-board", isAuth, deleteTaskAndRemoveFromBoard)
 
 export default router

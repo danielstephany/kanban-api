@@ -16,6 +16,15 @@ type tColumnMap = {[key: string]: {
     taskIds: string[]
 }}
 
+type paginationType = { 
+    page: string, 
+    limit: string,
+    sortBy: string,
+    direction: "asc" | "desc"
+    searchBy?: string,
+    searchValue?: string
+}
+
 export const createBoard = async (req: Request, res: Response, next: NextFunction) => {
     const columnMap: tColumnMap = {}
     const columnOrder: String[] = []
@@ -175,14 +184,19 @@ export const moveTask = async (req: Request, res: Response, next: NextFunction) 
 
 export const getBoards = async (req: Request, res: Response, next: NextFunction) => {
     const userId = res.locals.userId
-    const { page = "0", limit = "10" } = <{ page: string, limit: string }>req.query
+    const { page = "0", limit = "10", sortBy = "updatedAt", direction = "asc", searchBy, searchValue, } = <paginationType>req.query
     
     try {
         const offset = parseInt(page, 10) * parseInt(limit, 10);
+        const filter: { [key: string]: any } = { usersWithAccess: { $in: [userId] } }
+
+        if(searchBy && searchValue){
+            filter.title = { "$regex": searchValue, "$options": "i" }
+        }
 
         const boardList = await Board
-            .find({ usersWithAccess: { $in: [userId] } }, "title updatedAt createdAt", { skip: 3, limit: 5 })
-            .sort({'updatedAt': -1})
+            .find(filter, "title updatedAt createdAt", { skip: 3, limit: 5 })
+            .sort({ [sortBy]: direction })
             .limit(parseInt(limit, 10))
             .skip(offset);
 

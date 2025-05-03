@@ -1,4 +1,4 @@
-import jwt, { JwtPayload } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import { Request, Response, NextFunction } from 'express'
 import type iError from '../types/error'
 
@@ -16,7 +16,7 @@ export default (req: Request, res: Response, next: NextFunction) => {
     const token = authHeader.split(" ")[1]
 
     try {
-        let decodedToken = jwt.verify(token, process.env.JWT_SECRET as string) as iJwt
+        let decodedToken = <iJwt>jwt.verify(token, process.env.JWT_SECRET as string)
 
         if(!decodedToken){
             const error: iError = new Error("Not Authorized")
