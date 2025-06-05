@@ -65,8 +65,6 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
     }
 }
 
-
-
 export const ownedByUser = async(req: Request, res: Response, next: NextFunction) => {
     try {
         const boards = await Board.find({owner: res.locals.userId})
@@ -216,3 +214,26 @@ export const getBoards = async (req: Request, res: Response, next: NextFunction)
         next(err)
     }
 }   
+
+export const deleteBoard = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const id = req.params.id
+        const userId = res.locals.userId
+    
+        const board = await Board.findById(id)
+        
+        if(String(board?.owner) === userId){
+            await Task.deleteMany({boardId: id})
+            await board?.deleteOne();
+        } else {
+            throw new Error("Board not found")
+        }
+
+        res.status(204).json(null)
+
+    } catch(e){
+        const err = e as iError
+        if(!err.statusCode) err.statusCode = 404
+        next(err)
+    }
+}
