@@ -237,3 +237,43 @@ export const deleteBoard = async (req: Request, res: Response, next: NextFunctio
         next(err)
     }
 }
+
+export const deleteColumn = async(req: Request, res: Response, next: NextFunction) => {
+    const {boardId, columnId}: {boardId: string, columnId: any} = req.body
+    let boardData;
+
+    try {
+        if(boardId && columnId) boardData = await Board.findById(boardId)
+
+        if(boardData){
+            const columnOrder = boardData.columnOrder.filter(column_id => column_id !== columnId)
+            boardData.columnOrder = columnOrder
+            boardData.columns.delete(columnId)
+            boardData.save()
+
+            Task.deleteMany({boardId: boardId, status: columnId})
+        } else {
+            throw new Error("board not found")
+        }
+
+        res.status(200).json(boardData)
+    } catch(e){
+        const err = e as iError
+        if(!err.statusCode) err.statusCode = 404
+        next(err)
+    }
+    
+}
+
+
+/**
+ * update columns
+ * 
+ * update column order to new column order array
+ * loop through columns, if name changed 
+ *  - update new name
+ *  - update columnID
+ *  - update the status for each Task to match the updated column id
+ *  - if column is removed tasks should be moved to new colunm specified by user.
+ * 
+ */
