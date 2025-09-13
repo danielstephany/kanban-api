@@ -310,6 +310,29 @@ export const renameColumn = async (req: Request, res: Response, next: NextFuncti
 
 }
 
+export const moveColumn = async (req: Request, res: Response, next: NextFunction) => {
+    const { boardId, columnOrder }: { boardId: string, columnOrder: string[] } = req.body
+    let boardData;
+
+    try {
+        if (boardId && columnOrder) boardData = await Board.findById(boardId)
+
+        if (boardData) {
+            boardData.columnOrder = columnOrder
+            boardData.save()
+        } else {
+            throw new Error("board not found")
+        }
+
+        res.status(200).json(boardData)
+    } catch (e) {
+        const err = e as iError
+        if (!err.statusCode) err.statusCode = 404
+        next(err)
+    }
+
+}
+
 
 /**
  * update columns
