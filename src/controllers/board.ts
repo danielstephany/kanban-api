@@ -3,6 +3,7 @@ import Board from "../models/board"
 import Task from "../models/task"
 import { Request, Response, NextFunction } from 'express'
 import iError from '../types/error'
+import { kebabCase } from "../utils/stringFormaters"
 
 interface iBoardData  {
     title: string,
@@ -33,7 +34,7 @@ export const createBoard = async (req: Request, res: Response, next: NextFunctio
 
         if(title && Array.isArray(columns)){
             columns.forEach(columnTitle => {
-                const titleKey = columnTitle.toLowerCase().split(" ").join("-")
+                const titleKey = kebabCase(columnTitle)
                 columnMap[titleKey] = {
                     title: columnTitle,
                     columnId: titleKey,
@@ -263,6 +264,50 @@ export const deleteColumn = async(req: Request, res: Response, next: NextFunctio
         next(err)
     }
     
+}
+
+export const renameColumn = async (req: Request, res: Response, next: NextFunction) => {
+    const { boardId, initalColumnId, updatedColumnTitle }: { boardId: string, initalColumnId: string, updatedColumnTitle: string} = req.body
+    let boardData;
+
+    try {
+        if (boardId && initalColumnId && updatedColumnTitle) boardData = await Board.findById(boardId)
+
+        if (boardData) {
+            const newColumnId: string = kebabCase(updatedColumnTitle)
+            const columnOrderIndex = boardData.columnOrder.indexOf(initalColumnId)
+            const originalColumn = structuredClone(boardData.columns.get(initalColumnId))
+            
+            // update the columnId in the columnOrder property
+            boardData.columnOrder[columnOrderIndex] = updatedColumnTitle
+
+            if (originalColumn){
+                //update copied colunn to have new values and set it to the columns
+                originalColumn.columnId = newColumnId
+                originalColumn.title = updatedColumnTitle
+                boardData.columns.set(newColumnId, originalColumn)
+                //delete old column refrence with outdated data
+                boardData.columns.delete(initalColumnId)
+
+                boardData.save()
+
+                // update the status of tasks that where in that column to use the new column id
+                Task.updateMany({ boardId: boardId, status: initalColumnId }, { "$set": { status: newColumnId }})
+            } else {
+                throw new Error(`column "${initalColumnId}" not found`)
+            }
+
+        } else {
+            throw new Error("board not found")
+        }
+
+        res.status(200).json(boardData)
+    } catch (e) {
+        const err = e as iError
+        if (!err.statusCode) err.statusCode = 404
+        next(err)
+    }
+
 }
 
 

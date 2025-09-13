@@ -1,0 +1,1 @@
+export const kebabCase = (value: string) => value.toLowerCase().split(" ").join("-")

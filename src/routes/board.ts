@@ -9,7 +9,8 @@ import {
     moveTask,
     getBoards,
     deleteBoard,
-    deleteColumn
+    deleteColumn,
+    renameColumn
 } from '../controllers/board'
 import isAuth from '../middleware/isAuth'
 
@@ -19,6 +20,7 @@ router.post("/", isAuth, createBoard)
 router.get("/", isAuth, getBoards)
 router.delete('/:id', isAuth, deleteBoard)
 router.patch("/delete-column", deleteColumn)
+router.patch("/rename-column", renameColumn)
 router.post("/move-task", isAuth, moveTask)
 router.get("/owned-by-user", isAuth, ownedByUser)
 router.get("/for-users-with-access", isAuth, forUsersWithAccess)
