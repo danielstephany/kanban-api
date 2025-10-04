@@ -250,7 +250,7 @@ export const deleteColumn = async(req: Request, res: Response, next: NextFunctio
             const columnOrder = boardData.columnOrder.filter(column_id => column_id !== columnId)
             boardData.columnOrder = columnOrder
             boardData.columns.delete(columnId)
-            boardData.save()
+            await boardData.save()
 
             Task.deleteMany({boardId: boardId, status: columnId})
         } else {
@@ -267,38 +267,38 @@ export const deleteColumn = async(req: Request, res: Response, next: NextFunctio
 }
 
 export const renameColumn = async (req: Request, res: Response, next: NextFunction) => {
-    const { boardId, initalColumnId, updatedColumnTitle }: { boardId: string, initalColumnId: string, updatedColumnTitle: string} = req.body
+    const { boardId, columnId, title }: { boardId: string, columnId: string, title: string} = req.body
     let boardData;
 
     try {
-        if (boardId && initalColumnId && updatedColumnTitle) boardData = await Board.findById(boardId)
+        if (boardId && columnId && title) boardData = await Board.findById(boardId)
 
         if (boardData) {
-            const newColumnId: string = kebabCase(updatedColumnTitle)
-            const columnOrderIndex = boardData.columnOrder.indexOf(initalColumnId)
-            const originalColumn = structuredClone(boardData.columns.get(initalColumnId))
+            const newColumnId: string = kebabCase(title)
+            const columnOrderIndex = boardData.columnOrder.indexOf(columnId)
+            const originalColumn = boardData.columns.get(columnId)
             
             // update the columnId in the columnOrder property
-            boardData.columnOrder[columnOrderIndex] = updatedColumnTitle
+            boardData.columnOrder[columnOrderIndex] = newColumnId
 
             if (originalColumn){
                 //update copied colunn to have new values and set it to the columns
+                boardData.columns.delete(columnId)
                 originalColumn.columnId = newColumnId
-                originalColumn.title = updatedColumnTitle
+                originalColumn.title = title
                 boardData.columns.set(newColumnId, originalColumn)
                 //delete old column refrence with outdated data
-                boardData.columns.delete(initalColumnId)
 
-                boardData.save()
+                await boardData.save()
 
                 // update the status of tasks that where in that column to use the new column id
-                Task.updateMany({ boardId: boardId, status: initalColumnId }, { "$set": { status: newColumnId }})
+                await Task.updateMany({ boardId: boardId, status: columnId }, { "$set": { status: newColumnId }})
             } else {
-                throw new Error(`column "${initalColumnId}" not found`)
+                throw new Error(`column "${columnId}" not found`)
             }
 
         } else {
-            throw new Error("board not found")
+            throw new Error("board or column not found")
         }
 
         res.status(200).json(boardData)
@@ -319,7 +319,7 @@ export const moveColumn = async (req: Request, res: Response, next: NextFunction
 
         if (boardData) {
             boardData.columnOrder = columnOrder
-            boardData.save()
+            await boardData.save()
         } else {
             throw new Error("board not found")
         }
@@ -333,15 +333,33 @@ export const moveColumn = async (req: Request, res: Response, next: NextFunction
 
 }
 
+export const createColumn = async (req: Request, res: Response, next: NextFunction) => {
+    const {boardId, title} = req.body
+    try {    
+        if(boardId && title){
+            const board = await Board.findById(boardId)
+    
+            if(board){
+                const titleKey = kebabCase(title)
+                board.columns.set(titleKey, {
+                    title,
+                    columnId: titleKey,
+                    taskIds: []
+                })
+                board.columnOrder.push(titleKey)
+                await board.save()
 
-/**
- * update columns
- * 
- * update column order to new column order array
- * loop through columns, if name changed 
- *  - update new name
- *  - update columnID
- *  - update the status for each Task to match the updated column id
- *  - if column is removed tasks should be moved to new colunm specified by user.
- * 
- */
+                res.status(200).json(board)
+            } else {
+                throw new Error("board not found")
+            }
+        } else {
+            const error = new Error("boardId and title are required") as iError
+            error.statusCode = 422
+        }
+    } catch(e){
+        const err = e as iError
+        if (!err.statusCode) err.statusCode = 404
+        next(err)
+    }
+}
