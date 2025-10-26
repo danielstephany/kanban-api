@@ -144,6 +144,27 @@ export const getById = async (req: Request, res: Response, next: NextFunction) =
     }
 }
 
+export const updateBoardTitle = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userId = res.locals.userId
+        const { title, boardId } = req.body
+        
+        if(title){
+            const board = await Board.findOne({ _id: boardId, usersWithAccess: [userId] })
+            await Board.updateOne({title});
+
+            res.status(200).json(board)
+        } else {
+            const error = new Error("boardId and title are required") as iError
+            error.statusCode = 422
+        }
+    } catch (e) {
+        const err = e as iError
+        err.statusCode = 404
+        next(err)
+    }
+}
+
 export const moveTask = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {boardId, sourceColumn, destColumn, taskId, taskStatus} = req.body;
